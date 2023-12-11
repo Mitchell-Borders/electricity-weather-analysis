@@ -48,12 +48,18 @@ def get_GSOM_data(years_to_fetch=1):
     # start loop at 1000, since we already have the first 1000 results
     # add 100 to total_stations to make the for loop inclusive of the last stations
     for offset in range(1000, total_stations + 100, 1000):
-        params['offset'] = offset
-        print(f"Fetching data for offset {offset}")
-        response = requests.get(
-            base_url, headers={'token': api_key}, params=params)
-        data = response.json()
-        stations.extend(data['results'])
+        data_added = False
+        while not data_added:
+            try:
+                params['offset'] = offset
+                print(f"Fetching data for offset {offset}")
+                response = requests.get(
+                    base_url, headers={'token': api_key}, params=params)
+                data = response.json()
+                stations.extend(data['results'])
+                data_added = True
+            except Exception as e:
+                print(f"Error fetching data for offset {offset}: {e}")
     print('done')
     return stations
 
@@ -104,7 +110,7 @@ def upload_weather_data_to_adls():
     try:
         # Check if file system and directory already exist
         file_system_name = "ingestion"
-        directory_name = "electricity"
+        directory_name = "weather"
         file_system_client = service_client.get_file_system_client(file_system_name)
         directory_client = file_system_client.get_directory_client(directory_name)
         if not file_system_client.exists():
@@ -115,8 +121,8 @@ def upload_weather_data_to_adls():
             directory_client = file_system_client.create_directory(directory_name)
 
         # Upload the file to the directory
-        upload_file_to_adls(file_system_client, directory_name, "ElectricityDataPure.csv",
-                            "src/ingestion/ingestedData/ElectricityDataPure.csv")
+        upload_file_to_adls(file_system_client, directory_name, "WeatherDataPure.csv",
+                            "src/ingestion/ingestedData/WeatherDataPure.csv")
 
     except Exception as e:
         print(e)

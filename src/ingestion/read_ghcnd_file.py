@@ -9,7 +9,6 @@ def get_station_to_state_dict():
 ]
     mapping_dict = {}
     with open("ghcnd_stations.txt") as f:
-        
         for line in f:
             line_info = line.split()
             if line_info[4] in us_state_codes:
